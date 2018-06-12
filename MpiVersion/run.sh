@@ -8,7 +8,7 @@ for file in $( cat  graph_files/filelist ); do
   echo =================================
   echo Testing $file
   echo ================================
-  mpirun -np $NP $TARGET  $file $file.output
+  mpirun -np $NP ./$TARGET  $file $file.output
   tail -n 1 graph_files/$file.output
 done
 

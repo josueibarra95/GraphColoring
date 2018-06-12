@@ -7,11 +7,11 @@ typedef int bool;
 #define true 1
 #define false 0
 
-#define DEBUG_VERTEX_DISTRIBUTION 0
-#define DEBUG_JONES_PLASSMANN 0
+#define DEBUG_VERTEX_DISTRIBUTION 1
+#define DEBUG_JONES_PLASSMANN 1
 
-char * INPUT_PATH = "/home/dsand/ParallelSudoku/MpiVersion/graph_files/";
-char * OUTPUT_PATH = "/home/dsand/ParallelSudoku/MpiVersion/graph_files/";
+char * INPUT_PATH = "/home/elpibecantina/Workspace/SPD/TPF/Implementation/GraphColoring/MpiVersion/graph_file/";
+char * OUTPUT_PATH = "/home/elpibecantina/Workspace/SPD/TPF/Implementation/GraphColoring/MpiVersion/graph_file/";
 char * ws;//weak/strong indicator
 int rank,npes, root =0; 
 int V,E;//number of vertices and edges
@@ -160,70 +160,70 @@ void jones_plassmann(int* range,int * offsets,int * p_graph)
    
      //for each vertex of this process
     for (j=0;j<range[rank];j++) {
-	//get the vertex weight
-	j_weight = weights[first_v+j];
-	j_weight_is_max = true;
-	neighbor_colors = (int *) malloc(V*sizeof(int));
-	memset(neighbor_colors,0,V*sizeof(int));
-	num_colors=0;
-	//compare vertex weight to weights of its non-colored neighbors to see
-	//if it is a maximum. Also gather the colors of all neighbors of the
-	//vertex j that have been colored
-	for (k=0;k<V;k++) {
-	  //if there is an edge between j vertex and neighbor k vertex
-	  if (p_graph[j*V+k]==1) {
-	    //if neighbor is colored just add its color to the neighbor_colors
-	    if (colors[k] != 0) {
-	      neighbor_colors[num_colors++]=colors[k];
-	    }
-	    //if the weights match, solve conflict by looking at the vertices
-	    //ids and taking the vertex with higher id as the max 
-	    else if (j_weight< weights[k] || (j_weight==weights[k] && k>j)) {
-	      j_weight_is_max = false;
-	      break;
-	    }
-	  }
-	}
-	//if the vertex weight is a max and vertex hasnt been colored, 
-	//color it with the smallest color possible that is not one of
-	//neighbor_colors
-	if (j_weight_is_max==true && colors[first_v+j]==0) {
-	  //find smallest color to assign to the j vertex
-	  //that color is either 
-	  //a)1 if none of the neighbors is colored or the smallest color
-	  //of a neighbor is >1
-	  //b)In between a color in the array of neighbors colors if there is
-	  //a gap between two of the (sorted) neighbors colors
-	  //c) 1 more than the last color in the sorted array of neighbors
-	  //colors
-	  //sort neighbors colors. 
-	  qsort(neighbor_colors,num_colors,sizeof(int),compare);	  
-	  if (num_colors==0 || neighbor_colors[0]>1)
-	    min_color =1;
-	  else {
-	    for (k=0;k<V;k++) {
-	      if (k<V-1 && (neighbor_colors[k+1]-neighbor_colors[k]>1)) {
-		min_color = neighbor_colors[k]+1;
-		break;
-	      }
-	      else {
-		min_color = neighbor_colors[num_colors-1]+1;
-	      }
-	    }
-	  }
-	  j_colors[j] = min_color;    
-#if DEBUG_JONES_PLASSMANN
-	  if (i==1) {
-	    int m;
-	    if (num_colors==0)
-	      printf("rank=%d j=%d color=%d\n",rank,j,min_color);
-	    for (m=0;m<num_colors;m++) {
-	      printf("rank=%d j=%d color=%d neighbors colors %d\n",rank,j,min_color,neighbor_colors[m]);
-	    }
-	  }
-#endif
-	}
-	free(neighbor_colors);
+        //get the vertex weight
+        j_weight = weights[first_v+j];
+        j_weight_is_max = true;
+        neighbor_colors = (int *) malloc(V*sizeof(int));
+        memset(neighbor_colors,0,V*sizeof(int));
+        num_colors=0;
+        //compare vertex weight to weights of its non-colored neighbors to see
+        //if it is a maximum. Also gather the colors of all neighbors of the
+        //vertex j that have been colored
+        for (k=0;k<V;k++) {
+            //if there is an edge between j vertex and neighbor k vertex
+            if (p_graph[j*V+k]==1) {
+                //if neighbor is colored just add its color to the neighbor_colors
+                if (colors[k] != 0) {
+                    neighbor_colors[num_colors++]=colors[k];
+                }
+                //if the weights match, solve conflict by looking at the vertices
+                //ids and taking the vertex with higher id as the max 
+                else if (j_weight< weights[k] || (j_weight==weights[k] && k>j)) {
+                    j_weight_is_max = false;
+                    break;
+                }
+            }
+        }
+        //if the vertex weight is a max and vertex hasnt been colored, 
+        //color it with the smallest color possible that is not one of
+        //neighbor_colors
+        if (j_weight_is_max==true && colors[first_v+j]==0) {
+            //find smallest color to assign to the j vertex
+            //that color is either 
+            //a)1 if none of the neighbors is colored or the smallest color
+            //of a neighbor is >1
+            //b)In between a color in the array of neighbors colors if there is
+            //a gap between two of the (sorted) neighbors colors
+            //c) 1 more than the last color in the sorted array of neighbors
+            //colors
+            //sort neighbors colors. 
+            qsort(neighbor_colors,num_colors,sizeof(int),compare);	  
+            if (num_colors==0 || neighbor_colors[0]>1)
+                min_color =1;
+            else {
+                for (k=0;k<V;k++) {
+                    if (k<V-1 && (neighbor_colors[k+1]-neighbor_colors[k]>1)) {
+                        min_color = neighbor_colors[k]+1;
+                        break;
+                    }
+                    else {
+                        min_color = neighbor_colors[num_colors-1]+1;
+                    }
+                }
+            }
+            j_colors[j] = min_color;
+        #if DEBUG_JONES_PLASSMANN
+            if (i==1) {
+                int m;
+                if (num_colors==0)
+                    printf("rank=%d j=%d color=%d\n",rank,j,min_color);
+                for (m=0;m<num_colors;m++) {
+                    printf("rank=%d j=%d color=%d neighbors colors %d\n",rank,j,min_color,neighbor_colors[m]);
+                }
+            }
+        #endif
+        }
+        free(neighbor_colors);
     }
     //each process sends the colors of its vertices to root
     MPI_Gatherv(j_colors,range[rank],MPI_INT,colors,range,offsets,MPI_INT,root,MPI_COMM_WORLD);
@@ -233,7 +233,7 @@ void jones_plassmann(int* range,int * offsets,int * p_graph)
     if (i==1) {
       int p;
       for (p=0;p<range[rank];p++){      
-	printf("Checking copy from j_colors to colors:rank=%d vertex=%d j_color=%d colors=%d\n",rank,offsets[rank]+p,j_colors[offsets[rank]+p],colors[offsets[rank]+p]);
+        printf("Checking copy from j_colors to colors:rank=%d vertex=%d j_color=%d colors=%d\n",rank,offsets[rank]+p,j_colors[offsets[rank]+p],colors[offsets[rank]+p]);
       }
     }
 #endif
